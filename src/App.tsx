@@ -15,11 +15,15 @@ import {
     theme,
     Spacer,
     Stack,
+    TabList,
+    Tab,
+    TabPanel,
+    TabPanels,
+    Tabs,
     Text,
     VStack,
 } from "@chakra-ui/react"
 import { ColorModeSwitcher } from "./ColorModeSwitcher"
-import { Logo } from "./Logo"
 
 import "@rainbow-me/rainbowkit/styles.css";
 import {
@@ -53,24 +57,32 @@ const wagmiClient = createClient({
     provider,
 });
 
+const Header = () => (
+    <Flex direction="row" padding={5}>
+        <Box>
+            <Heading>m</Heading>
+        </Box>
+        <Spacer />
+        <Box>
+            <ConnectButton />
+            {/*<ColorModeSwitcher justifySelf="flex-end" />*/}
+        </Box>
+    </Flex>
+);
+
+const Footer = () => (
+    <></>
+);
+
 export const App = () => {
     return (
         <ChakraProvider theme={theme}>
             <WagmiConfig client={wagmiClient}>
                 <RainbowKitProvider chains={chains}>
                     <BrowserRouter>
-                        <Box textAlign="center" fontSize="xl" bgGradient="black">
-                            <Flex direction="row" padding={5}>
-                                <Box>
-                                    <Heading>Mahkana</Heading>
-                                </Box>
-                                <Spacer />
-                                <Box>
-                                    <ConnectButton />
-                                    {/*<ColorModeSwitcher justifySelf="flex-end" />*/}
-                                </Box>
-                            </Flex>
-                            <Grid templateColumns="repeat(6, 1fr)">
+                        <Box bg="blackAlpha.700">
+                            <Header />
+                            <Grid templateColumns="repeat(12, 1fr)" gap={5}>
                                 <Routes>
                                     <Route path="/" element={<Home />} />
                                     <Route path="/provider-registration" element={<ProviderRegistrationForm />} />
@@ -79,6 +91,7 @@ export const App = () => {
                                     <Route path="/requester-profile" element={<RequesterProfile />} />
                                 </Routes>
                             </Grid>
+                            <Footer />
                         </Box>
                     </BrowserRouter>
                 </RainbowKitProvider>

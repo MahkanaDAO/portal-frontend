@@ -1,4 +1,10 @@
-import { ProviderData, ProviderTimeAvailability, StorageDeal } from "./types";
+import {
+    DealStatus,
+    ProviderData,
+    ProviderTimeAvailability,
+    RequesterData,
+    StorageDeal,
+} from "./types";
 
 const apiUrl = process.env.API_URL;
 
@@ -29,11 +35,11 @@ class PortalAPI {
             method: "GET",
         }).then((resp) => {
             return {
-                startDate: new Date(),
-                endDate: new Date(),
-                status: "PENDING",
-                requester: "0x123",
-                providers: ["0x567", "0x765"],
+                startDate: new Date("2023-01-01"),
+                endDate: new Date("2023-10-10"),
+                status: DealStatus.PENDING,
+                requester: "0x12345678",
+                providers: ["0x567876", "0x7650909"],
                 sectors: 10,
             };
         });
@@ -52,23 +58,27 @@ class PortalAPI {
             method: "GET",
         }).then((resp) => {
             return {
-                isRegistered: true,
+                registrationDate: new Date("2021-05-08"),
                 reputation: {
                     rating: 0,
                     fulfillments: 0,
                     commitments: 0,
                 },
-                storageDeal: "",
+                storageDeals: ["0x47fhfdjnkdke", "0x234jdn$9fdg"],
             };
         });
     }
 
-    getRequesterData(walletAddress: string): Promise<any> {
+    getRequesterData(walletAddress: string): Promise<RequesterData> {
         return fetch(`${apiUrl}/requesters/${walletAddress}`, {
             method: "GET",
         }).then((resp) => {
             return {
-                storageDeals: ["0x123", "0x456"],
+                registrationDate: new Date("2020-01-15"),
+                pendingDeals: 0,
+                activeDeals: 1,
+                completeDeals: 5,
+                storageDeals: ["0x1239876", "0x456456456"],
             };
         });
     }

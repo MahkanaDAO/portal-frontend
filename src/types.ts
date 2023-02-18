@@ -12,18 +12,38 @@ interface ProviderReputation {
 }
 
 interface ProviderData {
-    isRegistered: boolean;
+    registrationDate: Date;
     reputation: ProviderReputation;
-    storageDeal: string | undefined;
+    storageDeals: string[] | undefined;
+}
+
+interface RequesterData {
+    registrationDate: Date;
+    pendingDeals: number;
+    activeDeals: number;
+    completeDeals: number;
+    storageDeals: string[];
 }
 
 interface StorageDeal {
     startDate: Date;
     endDate: Date;
-    status: string;
+    status: DealStatus;
     requester: string;
     providers: string[];
     sectors: number;
 }
 
-export type { ProviderTimeAvailability, ProviderReputation, ProviderData, StorageDeal };
+enum DealStatus {
+    PENDING = "PENDING",
+    ACTIVE = "ACTIVE",
+    COMPLETE = "COMPLETE",
+}
+
+enum UserType {
+    PROVIDER,
+    REQUESTER,
+}
+
+export type { ProviderTimeAvailability, ProviderReputation, ProviderData, RequesterData, StorageDeal };
+export { DealStatus, UserType };

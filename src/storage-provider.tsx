@@ -1,28 +1,18 @@
 import * as React from "react"
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {useEffect, useState} from "react"
+import {useNavigate} from "react-router-dom";
 import {
-    Accordion,
-    AccordionButton,
-    AccordionIcon,
-    AccordionItem,
-    AccordionPanel,
     Box,
     Button,
-    Code,
-    Flex,
+    Divider,
     FormControl,
     FormErrorMessage,
     FormHelperText,
     FormLabel,
-    Grid,
     GridItem,
     Heading,
-    HStack,
     Input,
-    Link,
     Select,
-    Spacer,
     Spinner,
     Stat,
     StatGroup,
@@ -32,12 +22,12 @@ import {
     Text,
     VStack,
 } from "@chakra-ui/react";
-import { useAccount } from "wagmi";
+import {useAccount} from "wagmi";
 
-import { providerStorageSizeOptions } from "./constants";
-import { ProviderReputation, ProviderTimeAvailability } from "./types";
-import { portalApi } from "./portal-api";
-import { StorageDeal } from "./storage-deal";
+import {providerStorageSizeOptions} from "./constants";
+import {ProviderData, UserType} from "./types";
+import {portalApi} from "./portal-api";
+import {StorageDealHistory} from "./storage-deal";
 
 const RegistrationForm = () => {
     const { address, connector, isConnected } = useAccount();
@@ -72,57 +62,60 @@ const RegistrationForm = () => {
             <Box marginY={5}>
                 <Heading size="md">Register as a Provider</Heading>
             </Box>
-            <form onSubmit={registerProvider}>
-                <VStack spacing={5}>
-                    <FormControl isRequired>
-                        <FormLabel>Wallet Address</FormLabel>
-                        <Input disabled type="text" value={isConnected ? address : "0x..."} />
-                        {addressError ? (
-                            <FormErrorMessage>{addressError}</FormErrorMessage>
-                        ) : (
-                            <FormHelperText>Click <i>Connect Wallet</i> in the top right.</FormHelperText>
-                        )}
-                    </FormControl>
-                    <FormControl isRequired>
-                        <FormLabel>Storage Availability</FormLabel>
-                        <Select
-                            placeholder="Select size..."
-                            value={storageAvailability}
-                            onChange={(event) => setStorageAvailability(parseInt(event.target.value))}
-                        >
-                            {providerStorageSizeOptions.map((size) => (<option value={size}>{size} GiB</option>))}
-                        </Select>
-                        <FormHelperText>Select the maximum amount of storage space you're willing to commit.</FormHelperText>
-                    </FormControl>
-                    <FormControl isRequired>
-                        <FormLabel>Start Time</FormLabel>
-                        <Input
-                            type="datetime-local"
-                            value={startTime?.toISOString().split(".")[0] ?? ""}
-                            onChange={(event) => {
-                                const date = new Date(event.target.value);
-                                console.log(event.target.value, date)
-                                setStartTime(date);
-                            }}
-                        />
-                    </FormControl>
-                    <FormControl isRequired>
-                        <FormLabel>End Time</FormLabel>
-                        <Input
-                            type="datetime-local"
-                            value={endTime?.toISOString().split(".")[0] ?? ""}
-                            onChange={(event) => {
-                                const date = new Date(event.target.value);
-                                setEndTime(date);
-                            }}
-                        />
-                    </FormControl>
+            <Divider />
+            <Box marginY={5}>
+                <form onSubmit={registerProvider}>
+                    <VStack spacing={5}>
+                        <FormControl isRequired>
+                            <FormLabel>Wallet Address</FormLabel>
+                            <Input disabled type="text" value={isConnected ? address : "0x..."} />
+                            {addressError ? (
+                                <FormErrorMessage>{addressError}</FormErrorMessage>
+                            ) : (
+                                <FormHelperText>Click <i>Connect Wallet</i> in the top right.</FormHelperText>
+                            )}
+                        </FormControl>
+                        <FormControl isRequired>
+                            <FormLabel>Storage Availability</FormLabel>
+                            <Select
+                                placeholder="Select size..."
+                                value={storageAvailability}
+                                onChange={(event) => setStorageAvailability(parseInt(event.target.value))}
+                            >
+                                {providerStorageSizeOptions.map((size) => (<option value={size}>{size} GiB</option>))}
+                            </Select>
+                            <FormHelperText>Select the maximum amount of storage space you're willing to commit.</FormHelperText>
+                        </FormControl>
+                        <FormControl isRequired>
+                            <FormLabel>Start Time</FormLabel>
+                            <Input
+                                type="datetime-local"
+                                value={startTime?.toISOString().split(".")[0] ?? ""}
+                                onChange={(event) => {
+                                    const date = new Date(event.target.value);
+                                    console.log(event.target.value, date)
+                                    setStartTime(date);
+                                }}
+                            />
+                        </FormControl>
+                        <FormControl isRequired>
+                            <FormLabel>End Time</FormLabel>
+                            <Input
+                                type="datetime-local"
+                                value={endTime?.toISOString().split(".")[0] ?? ""}
+                                onChange={(event) => {
+                                    const date = new Date(event.target.value);
+                                    setEndTime(date);
+                                }}
+                            />
+                        </FormControl>
                         <FormErrorMessage>{timeAvailabilityError}</FormErrorMessage>
-                    <FormControl>
-                        <Input type="submit" />
-                    </FormControl>
-                </VStack>
-            </form>
+                        <FormControl>
+                            <Button type="submit">Submit</Button>
+                        </FormControl>
+                    </VStack>
+                </form>
+            </Box>
         </GridItem>
     );
 };
@@ -131,15 +124,13 @@ const Profile = () => {
     const { address, connector, isConnected } = useAccount();
     const navigate = useNavigate();
 
-    const [reputation, setReputation] = useState<ProviderReputation>();
-    const [storageDealAddress, setStorageDealAddress] = useState<string>();
+    const [providerData, setProviderData] = useState<ProviderData>();
 
     useEffect(() => {
         if (address) {
             portalApi.getProviderData(address).then((data) => {
                 if (data) {
-                    setReputation(data.reputation);
-                    setStorageDealAddress(data.storageDeal);
+                    setProviderData(data);
                 } else {
                     navigate("/provider-registration");
                 }
@@ -149,88 +140,69 @@ const Profile = () => {
 
     if (!address) {
         return (
-            <GridItem colStart={3} colEnd={5}>
+            <GridItem colStart={3} colEnd={11}>
                 <Text>Please click <i>Connect Wallet</i> in the top right.</Text>
             </GridItem>
         );
     }
-    if (reputation === undefined) {
+    if (providerData === undefined) {
         return (
-            <Box justifySelf="center">
-                <Spinner size="xl" speed="0.5s" thickness="5px" />
-                <Text>Loading profile...</Text>
-            </Box>
+            <GridItem colSpan={12}>
+                <Box>
+                    <Spinner size="xl" speed="0.5s" thickness="5px" />
+                </Box>
+                <Box>
+                    <Text>Loading profile...</Text>
+                </Box>
+            </GridItem>
         );
     }
     return (
-        <GridItem colStart={2} colEnd={6} textAlign="left">
+        <GridItem colStart={2} colEnd={12} textAlign="left">
             <Box marginY={5}>
                 <Heading size="md">Provider Profile</Heading>
             </Box>
-            <Accordion defaultIndex={[0, 1]} allowMultiple allowToggle>
-                <AccordionItem>
-                    <AccordionButton>
-                        <Box as="span" flex="1" textAlign="left">
-                            Basics
-                        </Box>
-                        <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel>
-                        <StatGroup>
-                            <Stat>
-                                <StatLabel>Reliability Rating</StatLabel>
-                                <StatNumber>{reputation.rating}</StatNumber>
-                                <StatHelpText>
-                                    {reputation.fulfillments} fulfilled
-                                    / {reputation.commitments} committed
-                                </StatHelpText>
-                            </Stat>
-                            <Stat>
-                                <StatLabel>Membership</StatLabel>
-                                <StatNumber>3 Years</StatNumber>
-                                <StatHelpText>Since Jan 05, 2020</StatHelpText>
-                            </Stat>
-                        </StatGroup>
-                        <div>
-                            <Text fontSize="sm">
-                                The reliability rating affects how providers are selected for new storage deals.
-                                It's calculated by dividing the number of sectors that a provider has successfully proven
-                                by the the number of sectors that it has promised to prove.
-                                If no work history is available, a default rating is given.
-                            </Text>
-                        </div>
-                    </AccordionPanel>
-                </AccordionItem>
-                <AccordionItem>
-                    <AccordionButton>
-                        <Box as="span" flex="1" textAlign="left">
-                            Storage Deal
-                        </Box>
-                        <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel>
-                        {storageDealAddress ? (
-                            <>
-                                <StorageDeal contractAddress={storageDealAddress} />
-                                <Button>Download Sectors</Button>
-                            </>
-                        ) : (
-                            <Text fontSize="sm">You're not participating in any ongoing storage deals.</Text>
-                        )}
-                    </AccordionPanel>
-                </AccordionItem>
-                <AccordionItem>
-                    <AccordionButton>
-                        <Box as="span" flex="1" textAlign="left">
-                            Setup Instructions
-                        </Box>
-                        <AccordionIcon />
-                    </AccordionButton>
-                    <AccordionPanel>
-                        <Button>Download Binary</Button>
-                    </AccordionPanel>
-                </AccordionItem>
-            </Accordion>
+            <Divider />
+            <VStack align="left" marginY={5}>
+                <Heading as="h2" size="md" id="storage-stats">Storage Stats</Heading>
+                <StatGroup>
+                    <Stat>
+                        <StatLabel>Reliability Rating</StatLabel>
+                        <StatNumber>{providerData.reputation.rating}</StatNumber>
+                        <StatHelpText>
+                        </StatHelpText>
+                    </Stat>
+                    <Stat>
+                        <StatLabel>Fulfillments</StatLabel>
+                        <StatNumber>{providerData.reputation.fulfillments}</StatNumber>
+                        <StatHelpText></StatHelpText>
+                    </Stat>
+                    <Stat>
+                        <StatLabel>Commitments</StatLabel>
+                        <StatNumber>{providerData.reputation.commitments}</StatNumber>
+                        <StatHelpText></StatHelpText>
+                    </Stat>
+                    <Stat>
+                        <StatLabel>Membership</StatLabel>
+                        <StatNumber>3 Years</StatNumber>
+                        <StatHelpText>Since {providerData.registrationDate.toDateString()}</StatHelpText>
+                    </Stat>
+                </StatGroup>
+            </VStack>
+            <VStack align="left" marginY={5}>
+                <Heading as="h2" size="md" id="storage-history">Storage History</Heading>
+                <Box border="1px" borderColor="gray" borderRadius="md">
+                    {providerData.storageDeals ? (
+                        <StorageDealHistory
+                            userAddress={address}
+                            userType={UserType.PROVIDER}
+                            dealAddresses={providerData.storageDeals}
+                        />
+                    ) : (
+                        <Text fontSize="sm">No participation in any storage deals.</Text>
+                    )}
+                </Box>
+            </VStack>
         </GridItem>
     );
 };
