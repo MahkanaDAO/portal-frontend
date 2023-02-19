@@ -16,7 +16,7 @@
     "@types/react-dom": "^18.0.10",
     "ethers": "^5.7.2",
     "framer-motion": "^6.5.1",
-    "moment": "^2.29.4",
+    "luxon": "^3.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^3.11.0",
@@ -48,8 +48,8 @@
       "last 1 safari version"
     ]
   },
-  "types": "index.d.ts",
   "devDependencies": {
+    "@types/luxon": "^3.2.0",
     "eslint": "^8.34.0"
   }
 }

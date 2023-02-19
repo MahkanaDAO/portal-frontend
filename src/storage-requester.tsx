@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
+import {Link as RouterLink, useNavigate} from "react-router-dom";
 import {
     Accordion,
     AccordionButton,
@@ -35,33 +36,66 @@ import { useAccount } from "wagmi";
 import { RequesterData, UserType } from "./types";
 import { portalApi } from "./portal-api";
 import { StorageDealHistory } from "./storage-deal";
+import {DateTime} from "luxon";
+
+interface RequestFormInputs {
+    startDate: { value: string };
+    endDate: { value: string };
+    files: { files: FileList };
+}
 
 const RequestForm = () => {
+    const navigate = useNavigate();
     const { address, connector, isConnected } = useAccount();
-    const [startDate, setStartDate] = useState<Date>();
-    const [endDate, setEndDate] = useState<Date>();
-    const [userData, setUserData] = useState<string>();
 
-    const [addressError, setAddressError] = useState("");
-    const [dealDurationError, setDealDurationError] = useState("");
-    const [userDataError, setUserDataError] = useState("");
+    const [isDurationError, setIsDurationError] = useState(false);
+    const [isFilesError, setIsFilesError] = useState(false);
+    const [isSubmissionError, setIsSubmissionError] = useState(false);
 
-    const requestStorage = async () => {
+    const checkInvalidRange = (start: string, end: string) => {
+        return (
+            start === undefined || start === ""
+            || end === undefined || end === ""
+            || DateTime.fromISO(start) >= DateTime.fromISO(end)
+            || DateTime.fromISO(end) <= DateTime.utc()
+        );
+    }
+
+    const requestStorage = async (event: React.FormEvent) => {
         try {
-            setAddressError("");
-            setDealDurationError("");
-            setUserDataError("");
+            event.preventDefault();
+
+            const {
+                startDate: { value: startDate },
+                endDate: { value: endDate },
+                files: { files: files },
+            } = event.target as typeof event.target & RequestFormInputs;
+
+            setIsDurationError(false);
+            setIsFilesError(false);
+            setIsSubmissionError(false);
 
             if (address === undefined) {
-                setAddressError("Please connect your wallet.");
-            } else if (startDate === undefined || endDate === undefined) {
-                setDealDurationError("Please specify a start and end date");
-            } else if (userData === undefined) {
-                setUserData("Please upload your data.")
+                return;
+            } else if (checkInvalidRange(startDate, endDate)) {
+                setIsDurationError(true);
+            } else if (files === undefined || files === null || files.length === 0) {
+                setIsFilesError(true);
             } else {
-                await portalApi.requestStorage(address, startDate, endDate, userData);
+                console.log("address:", address);
+                console.log("start:", startDate);
+                console.log("end:", endDate);
+                const fileName = files[0].name
+                console.log("userData:", fileName)
+                const isProcessed = await portalApi.requestStorage(address, new Date(startDate), new Date(endDate), files);
+                if (!isProcessed) {
+                    setIsSubmissionError(true);
+                } else {
+                    navigate("/requester-profile");
+                }
             }
         } catch (error) {
+            setIsSubmissionError(true);
             console.log("unable to request storage:", error);
         }
     }
@@ -78,40 +112,30 @@ const RequestForm = () => {
                         <FormControl isRequired>
                             <FormLabel>Wallet Address</FormLabel>
                             <Input disabled type="text" value={isConnected ? address : "0x..."} />
-                            {(address === undefined || addressError) && (
+                            {address === undefined && (
                                 <FormHelperText>Click <i>Connect Wallet</i> in the top right.</FormHelperText>
                             )}
                         </FormControl>
                         <FormControl isRequired>
                             <FormLabel>Start Time</FormLabel>
-                            <Input
-                                type="date"
-                                value={startDate?.toDateString() ?? ""}
-                                onChange={(event) => {
-                                    const date = new Date(event.target.value);
-                                    setStartDate(date);
-                                }}
-                            />
+                            <Input name="startDate" type="date" />
                         </FormControl>
-                        <FormControl isRequired>
+                        <FormControl isRequired isInvalid={isDurationError}>
                             <FormLabel>End Time</FormLabel>
-                            <Input
-                                type="date"
-                                value={endDate?.toDateString() ?? ""}
-                                onChange={(event) => {
-                                    const date = new Date(event.target.value);
-                                    setEndDate(date);
-                                }}
-                            />
-                            <FormErrorMessage>{dealDurationError}</FormErrorMessage>
+                            <Input name="endDate" type="date" />
+                            <FormErrorMessage>Please specify a valid start and end date range.</FormErrorMessage>
                         </FormControl>
-                        <FormControl isRequired>
+                        <FormControl isRequired isInvalid={isFilesError}>
                             <FormLabel>Data Upload</FormLabel>
-                            <Input type="file" />
-                            <FormErrorMessage>{userDataError}</FormErrorMessage>
+                            <Input name="files" type="file" />
+                            <FormErrorMessage>Please upload a valid data file.</FormErrorMessage>
                         </FormControl>
-                        <FormControl>
+                        <FormControl isInvalid={isSubmissionError}>
                             <Button type="submit">Submit</Button>
+                            <FormErrorMessage>
+                                Sorry, we were unable to process your storage request and are looking into the issue.
+                                Please try again in a few minutes!
+                            </FormErrorMessage>
                         </FormControl>
                     </VStack>
                 </form>
@@ -142,12 +166,10 @@ const Profile = () => {
     if (requesterData === undefined) {
         return (
             <GridItem colSpan={12}>
-                <Box>
+                <Flex direction="column" height="full" justify="center" align="center">
                     <Spinner size="xl" speed="05s" thickness="5px" />
-                </Box>
-                <Box>
                     <Text>Loading profile...</Text>
-                </Box>
+                </Flex>
             </GridItem>
         );
     }
@@ -155,6 +177,9 @@ const Profile = () => {
         <GridItem colStart={2} colEnd={12} textAlign="left">
             <Box marginY={5}>
                 <Heading size="md">Requester Profile</Heading>
+            </Box>
+            <Box marginY={5}>
+                <Button as={RouterLink} to="/storage-request">Request Storage</Button>
             </Box>
             <Divider />
             <VStack align="left" marginY={5}>

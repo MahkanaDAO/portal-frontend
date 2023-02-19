@@ -1,4 +1,5 @@
 // TODO @ygao change this to a declaration file?
+import { DateTime } from "luxon";
 
 interface ProviderTimeAvailability {
     startTime: Date;
@@ -12,13 +13,13 @@ interface ProviderReputation {
 }
 
 interface ProviderData {
-    registrationDate: Date;
+    registrationDate: DateTime;
     reputation: ProviderReputation;
     storageDeals: string[] | undefined;
 }
 
 interface RequesterData {
-    registrationDate: Date;
+    registrationDate: DateTime;
     pendingDeals: number;
     activeDeals: number;
     completeDeals: number;
@@ -26,8 +27,8 @@ interface RequesterData {
 }
 
 interface StorageDeal {
-    startDate: Date;
-    endDate: Date;
+    startDate: DateTime;
+    endDate: DateTime;
     status: DealStatus;
     requester: string;
     providers: string[];

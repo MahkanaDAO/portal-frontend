@@ -1,10 +1,11 @@
 import * as React from "react"
 import {useEffect, useState} from "react"
-import {useNavigate} from "react-router-dom";
+import {useNavigate, Link as RouterLink} from "react-router-dom";
 import {
     Box,
     Button,
     Divider,
+    Flex,
     FormControl,
     FormErrorMessage,
     FormHelperText,
@@ -23,36 +24,70 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import {useAccount} from "wagmi";
+import { DateTime } from "luxon";
 
 import {providerStorageSizeOptions} from "./constants";
 import {ProviderData, UserType} from "./types";
 import {portalApi} from "./portal-api";
 import {StorageDealHistory} from "./storage-deal";
 
+interface RegistrationFormInputs {
+    startTime: { value: string };
+    endTime: { value: string };
+    storage: { value: string };
+}
+
 const RegistrationForm = () => {
+    const navigate = useNavigate();
     const { address, connector, isConnected } = useAccount();
 
-    const [storageAvailability, setStorageAvailability] = useState(2);
-    const [startTime, setStartTime] = useState<Date>();
-    const [endTime, setEndTime] = useState<Date>();
+    const [isStorageError, setIsStorageError] = useState(false);
+    const [isTimeError, setIsTimeError] = useState(false);
+    const [isSubmissionError, setIsSubmissionError] = useState(false);
 
-    const [addressError, setAddressError] = useState("");
-    const [timeAvailabilityError, setTimeAvailabilityError] = useState("");
+    const checkInvalidRange = (start: string, end: string) => {
+        return (
+            start === undefined || start === ""
+            || start === undefined || start === ""
+            || DateTime.fromISO(start) >= DateTime.fromISO(end)
+            || DateTime.fromISO(end) <= DateTime.utc()
+        );
+    }
 
-    const registerProvider = async () => {
+    const registerProvider = async (event: React.FormEvent) => {
         try {
-            setAddressError("");
-            setTimeAvailabilityError("");
+            event.preventDefault();
+
+            const {
+                startTime: { value: startTime },
+                endTime: { value: endTime },
+                storage: { value: storage },
+            } = event.target as typeof event.target & RegistrationFormInputs;
+
+            setIsStorageError(false)
+            setIsTimeError(false);
+            setIsSubmissionError(false);
 
             if (address === undefined) {
-                setAddressError("Please connect your wallet.");
-            } else if (startTime === undefined || endTime === undefined) {
-                setTimeAvailabilityError("Please specify a start and end date.");
+                return;
+            } else if (storage === "") {
+                setIsStorageError(true);
+            } else if (checkInvalidRange(startTime, endTime)) {
+                setIsTimeError(true);
             } else {
-                const timeAvailability = { startTime, endTime };
-                await portalApi.registerProvider(address, storageAvailability, timeAvailability);
+                console.log("address:", address);
+                console.log("storage:", storage);
+                console.log("start:", startTime);
+                console.log("end:", endTime);
+                const isRegistered = await portalApi.registerProvider(address, parseInt(storage), new Date(startTime), new Date(endTime));
+                if (!isRegistered) {
+                    setIsSubmissionError(true);
+                } else {
+                    navigate("/provider-profile");
+                }
             }
         } catch (error) {
+            setIsSubmissionError(true);
             console.log("unable to register provider:", error);
         }
     };
@@ -69,49 +104,36 @@ const RegistrationForm = () => {
                         <FormControl isRequired>
                             <FormLabel>Wallet Address</FormLabel>
                             <Input disabled type="text" value={isConnected ? address : "0x..."} />
-                            {addressError ? (
-                                <FormErrorMessage>{addressError}</FormErrorMessage>
-                            ) : (
+                            {address === undefined && (
                                 <FormHelperText>Click <i>Connect Wallet</i> in the top right.</FormHelperText>
                             )}
                         </FormControl>
-                        <FormControl isRequired>
+                        <FormControl isRequired isInvalid={isStorageError}>
                             <FormLabel>Storage Availability</FormLabel>
-                            <Select
-                                placeholder="Select size..."
-                                value={storageAvailability}
-                                onChange={(event) => setStorageAvailability(parseInt(event.target.value))}
-                            >
-                                {providerStorageSizeOptions.map((size) => (<option value={size}>{size} GiB</option>))}
+                            <Select name="storage" placeholder="Select size...">
+                                {providerStorageSizeOptions.map((size, idx) => (<option key={idx} value={size}>{size} GiB</option>))}
                             </Select>
-                            <FormHelperText>Select the maximum amount of storage space you're willing to commit.</FormHelperText>
+                            {isStorageError ? (
+                                <FormErrorMessage>Please select a valid storage size.</FormErrorMessage>
+                            ) : (
+                                <FormHelperText>Select the maximum amount of storage space you're willing to commit.</FormHelperText>
+                            )}
                         </FormControl>
                         <FormControl isRequired>
                             <FormLabel>Start Time</FormLabel>
-                            <Input
-                                type="datetime-local"
-                                value={startTime?.toISOString().split(".")[0] ?? ""}
-                                onChange={(event) => {
-                                    const date = new Date(event.target.value);
-                                    console.log(event.target.value, date)
-                                    setStartTime(date);
-                                }}
-                            />
+                            <Input name="startTime" type="datetime-local" />
                         </FormControl>
-                        <FormControl isRequired>
+                        <FormControl isRequired isInvalid={isTimeError}>
                             <FormLabel>End Time</FormLabel>
-                            <Input
-                                type="datetime-local"
-                                value={endTime?.toISOString().split(".")[0] ?? ""}
-                                onChange={(event) => {
-                                    const date = new Date(event.target.value);
-                                    setEndTime(date);
-                                }}
-                            />
+                            <Input name="endTime" type="datetime-local" />
+                            <FormErrorMessage>Please specify a valid start and end time range.</FormErrorMessage>
                         </FormControl>
-                        <FormErrorMessage>{timeAvailabilityError}</FormErrorMessage>
-                        <FormControl>
+                        <FormControl isInvalid={isSubmissionError}>
                             <Button type="submit">Submit</Button>
+                            <FormErrorMessage>
+                                Sorry, we were unable to register you as a provider and are looking into the issue.
+                                Please try again in a few minutes!
+                            </FormErrorMessage>
                         </FormControl>
                     </VStack>
                 </form>
@@ -121,8 +143,8 @@ const RegistrationForm = () => {
 };
 
 const Profile = () => {
-    const { address, connector, isConnected } = useAccount();
     const navigate = useNavigate();
+    const { address, connector, isConnected } = useAccount();
 
     const [providerData, setProviderData] = useState<ProviderData>();
 
@@ -148,12 +170,10 @@ const Profile = () => {
     if (providerData === undefined) {
         return (
             <GridItem colSpan={12}>
-                <Box>
+                <Flex direction="column" height="full" justify="center" align="center">
                     <Spinner size="xl" speed="0.5s" thickness="5px" />
-                </Box>
-                <Box>
                     <Text>Loading profile...</Text>
-                </Box>
+                </Flex>
             </GridItem>
         );
     }
@@ -185,7 +205,7 @@ const Profile = () => {
                     <Stat>
                         <StatLabel>Membership</StatLabel>
                         <StatNumber>3 Years</StatNumber>
-                        <StatHelpText>Since {providerData.registrationDate.toDateString()}</StatHelpText>
+                        <StatHelpText>Since {providerData.registrationDate.toLocaleString()}</StatHelpText>
                     </Stat>
                 </StatGroup>
             </VStack>

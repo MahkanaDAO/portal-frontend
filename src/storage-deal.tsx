@@ -22,6 +22,7 @@ import {
     Text,
     VStack,
 } from "@chakra-ui/react";
+import {DateTime, Duration, DurationLikeObject, Interval} from "luxon";
 
 import {StorageDeal as DealData, DealStatus, UserType} from "./types";
 import {portalApi} from "./portal-api";
@@ -62,7 +63,7 @@ const DynamicAccordionButton = ({ isExpanded, dealAddress, deal }: DynamicAccord
                 <Spacer />
                 {deal.status !== DealStatus.PENDING && (
                     <>
-                        <Text>{deal.startDate.toDateString()}</Text>
+                        <Text>{deal.startDate.toLocaleString()}</Text>
                         <Spacer />
                     </>
                 )}
@@ -78,16 +79,26 @@ const DynamicAccordionButton = ({ isExpanded, dealAddress, deal }: DynamicAccord
 const StorageDeal = ({ dealAddress, userAddress, userType }: StorageDealProps) => {
     const [deal, setDeal] = useState<DealData>();
     const [dealProgress, setDealProgress] = useState(0);
+    const [totalDuration, setTotalDuration] = useState<Duration>();
+    const [remainingDuration, setRemainingDuration] = useState<Duration>();
+
+    const toNumber = (duration: Duration | undefined, unit: keyof DurationLikeObject = "days") => {
+        return duration === undefined ? 0 : Math.round(duration.as(unit));
+    }
 
     useEffect(() => {
         portalApi.getStorageDeal(dealAddress)
             .then((deal) => {
                 setDeal(deal);
-                const now = (new Date()).valueOf();
-                const start = deal.startDate.valueOf();
-                const end = deal.endDate.valueOf();
-                const progress = Math.round(100 * (now - start) / (end - start));
-                console.log("num:", now - start, "den:", end - start, "progress:", progress);
+
+                const { startDate: start, endDate: end } = deal;
+                const now = DateTime.utc();
+                const total = Interval.fromDateTimes(start, end).toDuration();
+                const elapsed = Interval.fromDateTimes(start, now).toDuration();
+
+                setTotalDuration(total);
+                setRemainingDuration(total.minus(elapsed));
+                const progress = Math.round(100 * toNumber(elapsed) / toNumber(total));
                 setDealProgress(progress);
             });
     }, [dealAddress])
@@ -125,18 +136,18 @@ const StorageDeal = ({ dealAddress, userAddress, userType }: StorageDealProps) =
                             <StatGroup>
                                 <Stat>
                                     <StatLabel>Start Date</StatLabel>
-                                    <StatNumber>{deal.startDate.toDateString()}</StatNumber>
+                                    <StatNumber>{deal.startDate.toLocaleString()}</StatNumber>
                                     <StatHelpText></StatHelpText>
                                 </Stat>
                                 <Stat>
                                     <StatLabel>End Date</StatLabel>
-                                    <StatNumber>{deal.endDate.toDateString()}</StatNumber>
+                                    <StatNumber>{deal.endDate.toLocaleString()}</StatNumber>
                                     <StatHelpText></StatHelpText>
                                 </Stat>
                                 <Stat>
                                     <StatLabel>Duration</StatLabel>
-                                    <StatNumber>{60} Days</StatNumber>
-                                    <StatHelpText>{45} Days remaining</StatHelpText>
+                                    <StatNumber>{totalDuration && `${toNumber(totalDuration)} Days`}</StatNumber>
+                                    <StatHelpText>{remainingDuration && `${toNumber(remainingDuration)} Days remaining`}</StatHelpText>
                                 </Stat>
                             </StatGroup>
                             <Box>
@@ -178,16 +189,16 @@ const StorageDeal = ({ dealAddress, userAddress, userType }: StorageDealProps) =
 export const StorageDealHistory = ({ userAddress, userType, dealAddresses }: StorageDealHistoryProps) => {
     if (dealAddresses === undefined) {
         return (
-            <Box justifySelf="center">
+            <Flex direction="column" height="full" justify="center" align="center">
                 <Spinner size="xl" speed="0.5s" thickness="5px" />
                 <Text>Loading history...</Text>
-            </Box>
+            </Flex>
         );
     }
     return (
         <Accordion defaultIndex={[0]} allowMultiple>
-            {dealAddresses.map((dealAddress) => (
-                <StorageDeal dealAddress={dealAddress} userAddress={userAddress} userType={userType} />
+            {dealAddresses.map((dealAddress, idx) => (
+                <StorageDeal key={idx} dealAddress={dealAddress} userAddress={userAddress} userType={userType} />
             ))}
         </Accordion>
     );
