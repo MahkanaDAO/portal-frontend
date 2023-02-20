@@ -70,6 +70,6 @@ const filecoinHyperspace: Chain = {
 
 const providerStorageSizeOptions: ReadonlyArray<number> = [2, 4, 8, 16];
 const GITHUB_REPO_LINK = "https://github.com/Yiwen-Gao/micro-storage-platform-monorepo";
-const FILECOIN_SLACK_LINK = "https://filecoinproject.slack.com/";
+const FILECOIN_LINK = "https://filecoin.io/";
 
-export { filecoin, filecoinHyperspace, providerStorageSizeOptions, GITHUB_REPO_LINK, FILECOIN_SLACK_LINK };
+export { filecoin, filecoinHyperspace, providerStorageSizeOptions, GITHUB_REPO_LINK, FILECOIN_LINK };

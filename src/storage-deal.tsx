@@ -113,7 +113,7 @@ const StorageDeal = ({ dealAddress, userAddress, userType }: StorageDealProps) =
                 <>
                     <DynamicAccordionButton isExpanded={isExpanded} dealAddress={dealAddress} deal={deal} />
                     <AccordionPanel>
-                        <VStack spacing={5} align="left">
+                        <VStack spacing={5} align="stretch">
                             <StatGroup>
                                 <Stat>
                                     <StatLabel>Contract Address</StatLabel>

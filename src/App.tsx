@@ -12,7 +12,6 @@ import {
     Heading,
     HStack,
     Link,
-    theme,
     Spacer,
     Stack,
     TabList,
@@ -36,6 +35,7 @@ import { filecoin, filecoinHyperspace } from "./constants";
 import { alchemyProvider } from "wagmi/providers/alchemy";
 import { publicProvider } from "wagmi/providers/public";
 
+import theme from "./theme";
 import { Home } from "./home";
 import { Profile as ProviderProfile, RegistrationForm as ProviderRegistrationForm } from "./storage-provider";
 import { Profile as RequesterProfile, RequestForm as StorageRequestForm } from "./storage-requester";
@@ -102,7 +102,7 @@ export const App = () => {
             <WagmiConfig client={wagmiClient}>
                 <RainbowKitProvider chains={chains}>
                     <BrowserRouter>
-                        <Box bg="gray.900">
+                        <Box>
                             <Header />
                             <Grid minHeight="100vh" templateColumns="repeat(12, 1fr)" gap={5}>
                                 <Routes>

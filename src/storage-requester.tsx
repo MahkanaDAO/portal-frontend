@@ -182,7 +182,7 @@ const Profile = () => {
                 <Button as={RouterLink} to="/storage-request">Request Storage</Button>
             </Box>
             <Divider />
-            <VStack align="left" marginY={5}>
+            <VStack align="stretch" marginY={5}>
                 <Heading as="h2" size="md" id="storage-summary">Storage Summary</Heading>
                 <StatGroup>
                     <Stat>
@@ -202,7 +202,7 @@ const Profile = () => {
                     </Stat>
                 </StatGroup>
             </VStack>
-            <VStack align="left" marginY={5}>
+            <VStack align="stretch" marginY={5}>
                 <Heading size="md" id="storage-history">Storage History</Heading>
                 <Box border="1px" borderColor="gray" borderRadius="md">
                     <StorageDealHistory

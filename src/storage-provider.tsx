@@ -183,7 +183,7 @@ const Profile = () => {
                 <Heading size="md">Provider Profile</Heading>
             </Box>
             <Divider />
-            <VStack align="left" marginY={5}>
+            <VStack align="stretch" marginY={5}>
                 <Heading as="h2" size="md" id="storage-stats">Storage Stats</Heading>
                 <StatGroup>
                     <Stat>
@@ -209,7 +209,7 @@ const Profile = () => {
                     </Stat>
                 </StatGroup>
             </VStack>
-            <VStack align="left" marginY={5}>
+            <VStack align="stretch" marginY={5}>
                 <Heading as="h2" size="md" id="storage-history">Storage History</Heading>
                 <Box border="1px" borderColor="gray" borderRadius="md">
                     {providerData.storageDeals ? (
