@@ -26,9 +26,11 @@ import { ColorModeSwitcher } from "./ColorModeSwitcher"
 
 import "@rainbow-me/rainbowkit/styles.css";
 import {
-    getDefaultWallets,
-    RainbowKitProvider,
     ConnectButton,
+    darkTheme,
+    getDefaultWallets,
+    midnightTheme,
+    RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { filecoin, filecoinHyperspace } from "./constants";
@@ -97,10 +99,11 @@ const NotFound = () => (
 );
 
 export const App = () => {
+    const rainbowKitTheme = darkTheme({ fontStack: "system" });
     return (
         <ChakraProvider theme={theme}>
             <WagmiConfig client={wagmiClient}>
-                <RainbowKitProvider chains={chains}>
+                <RainbowKitProvider chains={chains} theme={rainbowKitTheme}>
                     <BrowserRouter>
                         <Box>
                             <Header />
