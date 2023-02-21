@@ -52,7 +52,7 @@ export const Home = () => {
             <GridItem colStart={5} colEnd={12} border="1px" borderColor="gray" borderRadius="lg" padding={5}>
                 <VStack align="start">
                     <Text>
-                        Mahkana is a layer 2 protocol on top of Filecoin that removes the network's specialized hardware requirements
+                        Mahkana is a layer 2 protocol on top of the Filecoin Virtual Machine that removes the network's specialized hardware requirements
                         and allows anyone to participate in storage deals as a storage provider.
                     </Text>
                     <Text>

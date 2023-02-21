@@ -5,6 +5,16 @@ const config: ThemeConfig = {
     useSystemColorMode: false,
 }
 
-const theme = extendTheme({ config });
+
+const theme = extendTheme({
+    config,
+    styles: {
+        global: {
+            "html, body": {
+                bg: "gray.900",
+            },
+        },
+    },
+});
 
 export default theme;
