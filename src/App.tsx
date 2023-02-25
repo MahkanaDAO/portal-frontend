@@ -10,7 +10,9 @@ import {
     Grid,
     GridItem,
     Heading,
+    Image,
     HStack,
+    IconButton,
     Link,
     Spacer,
     Stack,
@@ -42,6 +44,7 @@ import { Home } from "./home";
 import { Profile as ProviderProfile, RegistrationForm as ProviderRegistrationForm } from "./storage-provider";
 import { Profile as RequesterProfile, RequestForm as StorageRequestForm } from "./storage-requester";
 import { Docs } from "./docs";
+import MahkanaLogo from "./assets/mahkana.png";
 
 const { chains, provider } = configureChains(
     [filecoin, filecoinHyperspace],
@@ -61,10 +64,10 @@ const wagmiClient = createClient({
 });
 
 const Header = () => (
-    <Flex direction="row" padding={5}>
+    <Flex padding={5}>
         <Box>
-            <Button fontSize="4xl" as={RouterLink} to="/">
-                m
+            <Button as={RouterLink} to="/" variant="unstyled">
+                <Image src={MahkanaLogo} borderRadius="md" boxSize="50px"></Image>
             </Button>
         </Box>
         <HStack marginX={5}>

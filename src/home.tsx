@@ -17,7 +17,7 @@ import {
 import {FaDownload, FaExternalLinkAlt, FaFileAlt, FaGithub, FaSlack} from "react-icons/fa";
 import databaseGraphic from "./assets/database.png";
 import networkingGraphic from "./assets/networking.png";
-import MahkanaGraphic from "./assets/mahkana.gif";
+import MahkanaGraphic from "./assets/mahkana.gif"
 import { FILECOIN_LINK, GITHUB_REPO_LINK } from "./constants";
 
 export const Home = () => {
@@ -26,9 +26,9 @@ export const Home = () => {
     return (
         <>
             <GridItem colStart={2} colEnd={12}>
-                <Stack borderRadius="md" justify="center">
+		<Stack borderRadius="md" justify="center">
                     <Image src={MahkanaGraphic}></Image>
-                </Stack>
+		</Stack>
             </GridItem>
             <GridItem colStart={2} colEnd={5} border="1px" borderColor="gray" borderRadius="lg" padding={5}>
                 <VStack align="end">

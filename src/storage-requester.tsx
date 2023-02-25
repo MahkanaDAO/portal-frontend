@@ -167,7 +167,7 @@ const Profile = () => {
         return (
             <GridItem colSpan={12}>
                 <Flex direction="column" height="full" justify="center" align="center">
-                    <Spinner size="xl" speed="05s" thickness="5px" />
+                    <Spinner size="xl" speed="0.5s" thickness="5px" />
                     <Text>Loading profile...</Text>
                 </Flex>
             </GridItem>
